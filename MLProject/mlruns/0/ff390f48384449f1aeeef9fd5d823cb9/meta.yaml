@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/Glen%20Stefan/Workflow-CI/MLProject/mlruns/0/ff390f48384449f1aeeef9fd5d823cb9/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: ff390f48384449f1aeeef9fd5d823cb9
+run_name: treasured-goose-751
+run_uuid: ff390f48384449f1aeeef9fd5d823cb9
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1766325730298
+status: 1
+tags: []
+user_id: Glen Stefan
