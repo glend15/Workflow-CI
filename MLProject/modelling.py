@@ -1,3 +1,6 @@
+import os
+os.environ["MLFLOW_TRACKING_URI"] = "file:./mlruns"
+
 import pandas as pd
 import mlflow
 import mlflow.sklearn
@@ -7,12 +10,10 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
-
 from mlflow.models.signature import infer_signature
 
 
 def main():
-    # Load dataset
     data_path = "telco_preprocessing/telco_preprocessing.csv"
     df = pd.read_csv(data_path)
 
@@ -23,42 +24,32 @@ def main():
         X, y, test_size=0.2, random_state=42
     )
 
-    # Pipeline (Scaling + Model)
     pipeline = Pipeline([
         ("scaler", StandardScaler()),
         ("model", LogisticRegression(max_iter=3000))
     ])
 
-    # Train
     pipeline.fit(X_train, y_train)
-
-    # Predict
     y_pred = pipeline.predict(X_test)
 
-    # Metrics
     accuracy = accuracy_score(y_test, y_pred)
     precision = precision_score(y_test, y_pred)
     recall = recall_score(y_test, y_pred)
     f1 = f1_score(y_test, y_pred)
 
-    # MLflow logging
     mlflow.log_param("model", "LogisticRegression")
     mlflow.log_param("max_iter", 3000)
-    mlflow.log_param("scaler", "StandardScaler")
 
     mlflow.log_metric("accuracy", accuracy)
     mlflow.log_metric("precision", precision)
     mlflow.log_metric("recall", recall)
     mlflow.log_metric("f1_score", f1)
 
-    # Signature & example (WAJIB)
-    input_example = X_train.iloc[:5]
     signature = infer_signature(X_train, pipeline.predict(X_train))
-
     mlflow.sklearn.log_model(
         pipeline,
         artifact_path="model",
-        input_example=input_example,
+        input_example=X_train.iloc[:5],
         signature=signature
     )
 
