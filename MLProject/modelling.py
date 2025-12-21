@@ -1,6 +1,3 @@
-import os
-os.environ["MLFLOW_TRACKING_URI"] = "file:./mlruns"
-
 import pandas as pd
 import mlflow
 import mlflow.sklearn
@@ -14,8 +11,7 @@ from mlflow.models.signature import infer_signature
 
 
 def main():
-    data_path = "telco_preprocessing/telco_preprocessing.csv"
-    df = pd.read_csv(data_path)
+    df = pd.read_csv("telco_preprocessing/telco_preprocessing.csv")
 
     X = df.drop(columns=["Churn"])
     y = df["Churn"]
@@ -32,20 +28,16 @@ def main():
     pipeline.fit(X_train, y_train)
     y_pred = pipeline.predict(X_test)
 
-    accuracy = accuracy_score(y_test, y_pred)
-    precision = precision_score(y_test, y_pred)
-    recall = recall_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred)
-
     mlflow.log_param("model", "LogisticRegression")
     mlflow.log_param("max_iter", 3000)
 
-    mlflow.log_metric("accuracy", accuracy)
-    mlflow.log_metric("precision", precision)
-    mlflow.log_metric("recall", recall)
-    mlflow.log_metric("f1_score", f1)
+    mlflow.log_metric("accuracy", accuracy_score(y_test, y_pred))
+    mlflow.log_metric("precision", precision_score(y_test, y_pred))
+    mlflow.log_metric("recall", recall_score(y_test, y_pred))
+    mlflow.log_metric("f1_score", f1_score(y_test, y_pred))
 
     signature = infer_signature(X_train, pipeline.predict(X_train))
+
     mlflow.sklearn.log_model(
         pipeline,
         artifact_path="model",
@@ -54,7 +46,6 @@ def main():
     )
 
     print("Training selesai")
-    print("Accuracy:", accuracy)
 
 
 if __name__ == "__main__":

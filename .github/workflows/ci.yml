@@ -21,6 +21,9 @@ jobs:
         run: pip install mlflow==2.19.0
 
       - name: Run MLflow Project
+        env:
+          MLFLOW_TRACKING_URI: file:./mlruns
+          MLFLOW_ARTIFACT_URI: file:./mlruns
         run: |
           cd MLProject
           mlflow run . --env-manager=local
