@@ -5,6 +5,10 @@ import mlflow.sklearn
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+
+from mlflow.models.signature import infer_signature
 
 
 def main():
@@ -19,12 +23,17 @@ def main():
         X, y, test_size=0.2, random_state=42
     )
 
-    # Train model
-    model = LogisticRegression(max_iter=1000)
-    model.fit(X_train, y_train)
+    # Pipeline (Scaling + Model)
+    pipeline = Pipeline([
+        ("scaler", StandardScaler()),
+        ("model", LogisticRegression(max_iter=3000))
+    ])
 
-    # Prediction
-    y_pred = model.predict(X_test)
+    # Train
+    pipeline.fit(X_train, y_train)
+
+    # Predict
+    y_pred = pipeline.predict(X_test)
 
     # Metrics
     accuracy = accuracy_score(y_test, y_pred)
@@ -32,16 +41,26 @@ def main():
     recall = recall_score(y_test, y_pred)
     f1 = f1_score(y_test, y_pred)
 
-    # MLflow logging (TANPA start_run)
+    # MLflow logging
     mlflow.log_param("model", "LogisticRegression")
-    mlflow.log_param("max_iter", 1000)
+    mlflow.log_param("max_iter", 3000)
+    mlflow.log_param("scaler", "StandardScaler")
 
     mlflow.log_metric("accuracy", accuracy)
     mlflow.log_metric("precision", precision)
     mlflow.log_metric("recall", recall)
     mlflow.log_metric("f1_score", f1)
 
-    mlflow.sklearn.log_model(model, "model")
+    # Signature & example (WAJIB)
+    input_example = X_train.iloc[:5]
+    signature = infer_signature(X_train, pipeline.predict(X_train))
+
+    mlflow.sklearn.log_model(
+        pipeline,
+        artifact_path="model",
+        input_example=input_example,
+        signature=signature
+    )
 
     print("Training selesai")
     print("Accuracy:", accuracy)
