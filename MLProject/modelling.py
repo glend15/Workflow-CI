@@ -1,13 +1,11 @@
 import pandas as pd
 import mlflow
-import mlflow.sklearn
 
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
-from mlflow.models.signature import infer_signature
 
 
 def main():
@@ -35,15 +33,6 @@ def main():
     mlflow.log_metric("precision", precision_score(y_test, y_pred))
     mlflow.log_metric("recall", recall_score(y_test, y_pred))
     mlflow.log_metric("f1_score", f1_score(y_test, y_pred))
-
-    signature = infer_signature(X_train, pipeline.predict(X_train))
-
-    mlflow.sklearn.log_model(
-        pipeline,
-        artifact_path="model",
-        input_example=X_train.iloc[:5],
-        signature=signature
-    )
 
     print("Training selesai")
 
