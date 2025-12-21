@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import mlflow
 import mlflow.sklearn
@@ -11,6 +12,12 @@ from mlflow.models.signature import infer_signature
 
 
 def main():
+    # ===============================
+    # FIX WAJIB: SET TRACKING & ARTIFACT LOCAL
+    # ===============================
+    mlflow.set_tracking_uri("file:./mlruns")
+    mlflow.set_experiment("telco-churn")
+
     df = pd.read_csv("telco_preprocessing/telco_preprocessing.csv")
 
     X = df.drop(columns=["Churn"])
@@ -25,25 +32,26 @@ def main():
         ("model", LogisticRegression(max_iter=3000))
     ])
 
-    pipeline.fit(X_train, y_train)
-    y_pred = pipeline.predict(X_test)
+    with mlflow.start_run():
+        pipeline.fit(X_train, y_train)
+        y_pred = pipeline.predict(X_test)
 
-    mlflow.log_param("model", "LogisticRegression")
-    mlflow.log_param("max_iter", 3000)
+        mlflow.log_param("model", "LogisticRegression")
+        mlflow.log_param("max_iter", 3000)
 
-    mlflow.log_metric("accuracy", accuracy_score(y_test, y_pred))
-    mlflow.log_metric("precision", precision_score(y_test, y_pred))
-    mlflow.log_metric("recall", recall_score(y_test, y_pred))
-    mlflow.log_metric("f1_score", f1_score(y_test, y_pred))
+        mlflow.log_metric("accuracy", accuracy_score(y_test, y_pred))
+        mlflow.log_metric("precision", precision_score(y_test, y_pred))
+        mlflow.log_metric("recall", recall_score(y_test, y_pred))
+        mlflow.log_metric("f1_score", f1_score(y_test, y_pred))
 
-    signature = infer_signature(X_train, pipeline.predict(X_train))
+        signature = infer_signature(X_train, pipeline.predict(X_train))
 
-    mlflow.sklearn.log_model(
-        pipeline,
-        artifact_path="model",
-        input_example=X_train.iloc[:5],
-        signature=signature
-    )
+        mlflow.sklearn.log_model(
+            pipeline,
+            artifact_path="model",
+            input_example=X_train.iloc[:5],
+            signature=signature
+        )
 
     print("Training selesai")
 
