@@ -19,32 +19,32 @@ def main():
         X, y, test_size=0.2, random_state=42
     )
 
-    # MLflow manual logging
-    mlflow.set_experiment("Telco Churn Experiment")
+    # Train model
+    model = LogisticRegression(max_iter=1000)
+    model.fit(X_train, y_train)
 
-    with mlflow.start_run():
-        model = LogisticRegression(max_iter=1000)
-        model.fit(X_train, y_train)
+    # Prediction
+    y_pred = model.predict(X_test)
 
-        y_pred = model.predict(X_test)
+    # Metrics
+    accuracy = accuracy_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred)
+    recall = recall_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred)
 
-        accuracy = accuracy_score(y_test, y_pred)
-        precision = precision_score(y_test, y_pred)
-        recall = recall_score(y_test, y_pred)
-        f1 = f1_score(y_test, y_pred)
+    # MLflow logging (TANPA start_run)
+    mlflow.log_param("model", "LogisticRegression")
+    mlflow.log_param("max_iter", 1000)
 
-        mlflow.log_param("model", "LogisticRegression")
-        mlflow.log_param("max_iter", 1000)
+    mlflow.log_metric("accuracy", accuracy)
+    mlflow.log_metric("precision", precision)
+    mlflow.log_metric("recall", recall)
+    mlflow.log_metric("f1_score", f1)
 
-        mlflow.log_metric("accuracy", accuracy)
-        mlflow.log_metric("precision", precision)
-        mlflow.log_metric("recall", recall)
-        mlflow.log_metric("f1_score", f1)
+    mlflow.sklearn.log_model(model, "model")
 
-        mlflow.sklearn.log_model(model, "model")
-
-        print("Training selesai")
-        print("Accuracy:", accuracy)
+    print("Training selesai")
+    print("Accuracy:", accuracy)
 
 
 if __name__ == "__main__":
