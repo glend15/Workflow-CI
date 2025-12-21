@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Python
@@ -22,5 +22,5 @@ jobs:
 
       - name: Run MLflow Project
         run: |
-          cd Workflow-CI/MLProject
+          cd MLProject
           mlflow run .
