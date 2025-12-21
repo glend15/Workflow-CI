@@ -24,4 +24,4 @@ jobs:
           MLFLOW_TRACKING_URI: file:./mlruns
         run: |
           cd MLProject
-          mlflow run . --env-manager=locals
+          mlflow run . --env-manager=local
