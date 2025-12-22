@@ -1,40 +1,52 @@
 import pandas as pd
 import mlflow
+import mlflow.sklearn
 
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
 
 
 def main():
+    mlflow.set_experiment("telco-churn")
+
     df = pd.read_csv("telco_preprocessing/telco_preprocessing.csv")
 
-    X = df.drop(columns=["Churn"])
+    X = df.drop("Churn", axis=1)
     y = df["Churn"]
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42
     )
 
-    pipeline = Pipeline([
-        ("scaler", StandardScaler()),
-        ("model", LogisticRegression(max_iter=3000))
-    ])
+    params = {
+        "n_estimators": [50, 100],
+        "max_depth": [5, 10]
+    }
 
-    pipeline.fit(X_train, y_train)
-    y_pred = pipeline.predict(X_test)
+    with mlflow.start_run(run_name="Random Forest Tuning"):
+        grid = GridSearchCV(
+            RandomForestClassifier(random_state=42),
+            params,
+            cv=3
+        )
 
-    mlflow.log_param("model", "LogisticRegression")
-    mlflow.log_param("max_iter", 3000)
+        grid.fit(X_train, y_train)
 
-    mlflow.log_metric("accuracy", accuracy_score(y_test, y_pred))
-    mlflow.log_metric("precision", precision_score(y_test, y_pred))
-    mlflow.log_metric("recall", recall_score(y_test, y_pred))
-    mlflow.log_metric("f1_score", f1_score(y_test, y_pred))
+        best_model = grid.best_estimator_
 
-    print("Training selesai")
+        y_pred = best_model.predict(X_test)
+        acc = accuracy_score(y_test, y_pred)
+
+        mlflow.log_params(grid.best_params_)
+        mlflow.log_metric("accuracy", acc)
+
+        mlflow.sklearn.log_model(
+            sk_model=best_model,
+            artifact_path="model"
+        )
+
+        print("Training RandomForest selesai dan model tersimpan")
 
 
 if __name__ == "__main__":
