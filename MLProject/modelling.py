@@ -6,9 +6,9 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 
-
 def main():
     mlflow.set_experiment("telco-churn")
+    mlflow.sklearn.autolog()
 
     df = pd.read_csv("telco_preprocessing/telco_preprocessing.csv")
 
@@ -24,30 +24,21 @@ def main():
         "max_depth": [5, 10]
     }
 
-    with mlflow.start_run(run_name="Random Forest Tuning"):
-        grid = GridSearchCV(
-            RandomForestClassifier(random_state=42),
-            params,
-            cv=3
-        )
+    grid = GridSearchCV(
+        RandomForestClassifier(random_state=42),
+        params,
+        cv=3
+    )
 
-        grid.fit(X_train, y_train)
+    grid.fit(X_train, y_train)
 
-        best_model = grid.best_estimator_
+    best_model = grid.best_estimator_
+    y_pred = best_model.predict(X_test)
 
-        y_pred = best_model.predict(X_test)
-        acc = accuracy_score(y_test, y_pred)
+    acc = accuracy_score(y_test, y_pred)
+    mlflow.log_metric("accuracy", acc)
 
-        mlflow.log_params(grid.best_params_)
-        mlflow.log_metric("accuracy", acc)
-
-        mlflow.sklearn.log_model(
-            sk_model=best_model,
-            artifact_path="model"
-        )
-
-        print("Training RandomForest selesai dan model tersimpan")
-
+    print("Training CI selesai")
 
 if __name__ == "__main__":
     main()
